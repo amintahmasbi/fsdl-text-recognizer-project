@@ -1,7 +1,6 @@
 """LSTM with CTC for handwritten text recognition within a line."""
 import tensorflow.keras.backend as K
-from tensorflow.python.client import device_lib  # pylint: disable=no-name-in-module
-from tensorflow.keras.layers import Dense, Input, Reshape, TimeDistributed, Lambda, LSTM, CuDNNLSTM
+from tensorflow.keras.layers import Dense, Input, Reshape, TimeDistributed, Lambda, LSTM
 from tensorflow.keras.models import Model as KerasModel
 
 
@@ -23,8 +22,7 @@ def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14):
     input_length = Input(shape=(1,), name='input_length')
     label_length = Input(shape=(1,), name='label_length')
 
-    gpu_present = len(device_lib.list_local_devices()) > 2
-    lstm_fn = CuDNNLSTM if gpu_present else LSTM
+    lstm_fn = LSTM  # TF 2's LSTM uses the cuDNN kernel automatically on GPU
 
     # Your code should use slide_window and extract image patches from image_input.
     # Pass a convolutional model over each image patch to generate a feature vector per window.
