@@ -58,8 +58,8 @@ class Model:
             format_fn=self.batch_format_fn
         )
 
-        self.network.fit_generator(
-            generator=train_sequence,
+        self.network.fit(
+            x=train_sequence,
             epochs=epochs,
             callbacks=callbacks,
             validation_data=test_sequence,
@@ -70,7 +70,7 @@ class Model:
 
     def evaluate(self, x, y, batch_size=16, verbose=False):  # pylint: disable=unused-argument
         sequence = DatasetSequence(x, y, batch_size=batch_size)  # Use a small batch size to use less memory
-        preds = self.network.predict_generator(sequence)
+        preds = self.network.predict(sequence)
         return np.mean(np.argmax(preds, -1) == np.argmax(y, -1))
 
     def loss(self):  # pylint: disable=no-self-use

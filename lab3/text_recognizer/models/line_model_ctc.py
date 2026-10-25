@@ -45,7 +45,7 @@ class LineModelCtc(Model):
 
         # We can use the `ctc_decoded` layer that is part of our model here.
         decoding_model = KerasModel(inputs=self.network.input, outputs=self.network.get_layer('ctc_decoded').output)
-        preds = decoding_model.predict_generator(test_sequence)
+        preds = decoding_model.predict(test_sequence)
 
         trues = np.argmax(y, -1)
         pred_strings = [''.join(self.data.mapping.get(label, '') for label in pred).strip(' |_') for pred in preds]
@@ -74,10 +74,14 @@ class LineModelCtc(Model):
         return mean_accuracy
 
     def predict_on_image(self, image: np.ndarray) -> Tuple[str, float]:
-        softmax_output_fn = K.function(
-            [self.network.get_layer('image').input, K.learning_phase()],
-            [self.network.get_layer('softmax_output').output]
+        softmax_model = KerasModel(
+            inputs=self.network.get_layer('image').input,
+            outputs=self.network.get_layer('softmax_output').output
         )
+
+        def softmax_output_fn(inputs):
+            """Same call signature as the old K.function: [image_batch, learning_phase] -> [softmax]."""
+            return [softmax_model.predict(inputs[0], verbose=0)]
         if image.dtype == np.uint8:
             image = (image / 255).astype(np.float32)
 
